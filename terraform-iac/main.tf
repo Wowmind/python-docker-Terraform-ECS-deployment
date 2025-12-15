@@ -3,7 +3,7 @@ resource "aws_ecs_cluster" "this" {
 }
 
 resource "aws_ecs_task_definition" "this" {
-  family                   = "python-app"
+  family                   = "python-ecs-app"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = 512
@@ -11,15 +11,21 @@ resource "aws_ecs_task_definition" "this" {
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
 
+  depends_on = [aws_cloudwatch_log_group.ecs]
+
   container_definitions = jsonencode([
     {
-      name      = "python-ecs-app"
+      name      = "python-app"
       image     = "182889640030.dkr.ecr.us-east-1.amazonaws.com/python-ecs-app:latest"
       essential = true
-      portMappings = [{
-        containerPort = 8080
-        protocol      = "tcp"
-      }]
+
+      portMappings = [
+        {
+          containerPort = 8080
+          protocol      = "tcp"
+        }
+      ]
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -31,6 +37,7 @@ resource "aws_ecs_task_definition" "this" {
     }
   ])
 }
+
 
 resource "aws_ecs_service" "this" {
   name            = "python-app-service"
@@ -93,6 +100,12 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+resource "aws_cloudwatch_log_group" "ecs" {
+  name              = "/ecs/python-ecs-app"
+  retention_in_days = 14
+}
+
 
 
 resource "aws_lb" "this" {
