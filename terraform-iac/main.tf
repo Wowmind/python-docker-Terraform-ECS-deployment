@@ -15,7 +15,7 @@ resource "aws_ecs_task_definition" "this" {
 
   container_definitions = jsonencode([
     {
-      name      = "python-app"
+      name      = "python-ecs-app"
       image     = "182889640030.dkr.ecr.us-east-1.amazonaws.com/python-ecs-app:latest"
       essential = true
 
